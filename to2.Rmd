@@ -1,0 +1,64 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+Row {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(dplyr)
+library(plotly)
+tweets = read.csv('narendramodi_tweets.csv')
+
+tweets$text = as.character(tweets$text)
+
+words_list = strsplit(tweets$text,' ')
+
+
+
+words = unlist(words_list)
+
+
+words_count=table(words)
+words_count=sort(words_count,decreasing = TRUE)
+
+words_count = as.data.frame(words_count)
+
+library(ggplot2)
+g<-ggplot(head(words_count,10),aes(x=words,y=Freq,fill=Freq)) + geom_bar(stat = 'identity')
+ggplotly(g)
+```
+
+Row {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+
+```
+Row {data-width =350}
+----------------------------------------------------------------------
+
+### Chart C
+
+```{r}
+
+```
+Row {data-width =350}
+----------------------------------------------------------------------
+
+### Chart D
