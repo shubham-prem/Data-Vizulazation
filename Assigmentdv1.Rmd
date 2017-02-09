@@ -1,0 +1,97 @@
+---
+title: "DV ASSIGNMENT 1"
+author: "SHUBHAM P"
+date: "2 February 2017"
+output: html_document
+---
+---------------------------------------
+# Reading the ODI Batting Analysis File
+---------------------------------------
+```{r}
+odi<- read.csv("D:/odi-batting-analysis.csv", sep = ",")
+head(odi)
+
+```
+
+--------------------------------------------------------
+# Creating a bar chart which plots total runs by month WEEKDAY DAY
+--------------------------------------------------------
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library("stringr", lib.loc="~/R/win-library/3.3")
+month_summary <- odi %>% group_by(MONTH) %>% summarise(TotalRuns = sum(Runs, na.rm = TRUE))
+month_summary$MONTH <- factor(month_summary$MONTH)
+ggplot(month_summary, aes(x = MONTH, y = TotalRuns, fill = -TotalRuns)) + geom_bar(stat = 'identity')
+weekday_summary <- odi %>% group_by(WEEKDAY) %>% summarise(TotalRuns = sum(Runs, na.rm = TRUE))
+weekday_summary$WEEKDAY <- factor(weekday_summary$WEEKDAY)
+ggplot(weekday_summary, aes(x = WEEKDAY, y = TotalRuns, fill = -TotalRuns)) + geom_bar(stat = 'identity')
+day_month_summary <- odi %>% group_by(DAY) %>% summarise(TotalRuns = sum(Runs, na.rm = TRUE))
+day_month_summary$DAY = factor(day_month_summary$DAY)
+ggplot(day_month_summary, aes(x = DAY, y = TotalRuns, fill = -TotalRuns)) + geom_bar(stat = 'identity')
+```
+
+---------------------------------------------------------------------------------------
+#Create a new column by binning the Runs column using the following ranges and plot the  frequency count of ranges
+# a. 0-25,
+# b. 26-50,
+# c. 51-75,
+# d. 76-100,
+# e. 100+ 
+
+
+```{r}
+odi <- na.omit(odi)
+odi$bin <- cut(odi$Runs, breaks = c(0,25,50,75,100,200), labels = c("0-25", "26-50", "51-75", "76-100", "100+"), include.lowest = TRUE)
+ggplot(odi, aes(x = bin, fill = bin)) + geom_bar()
+
+```
+
+-------------------------------------------------
+# Considering the top ten players by total runs , number of centuries across years & number of ducks across years
+-------------------------------------------------
+```{r}
+players_summary <- odi %>% group_by(Player) %>% summarise(TotalRuns = sum(Runs, na.rm = TRUE))
+top10_players_summary <- head(players_summary %>% arrange(-TotalRuns), 10)
+top10_players_summary
+ggplot(top10_players_summary, aes(x = Player, y = TotalRuns, fill = -TotalRuns)) + geom_bar(stat = "identity") + coord_flip()
+centuries_years <- odi %>% group_by(Year) %>% summarise(Centuries = sum(Runs >= 100))
+ggplot(centuries_years, aes(x = Year, y = Centuries, fill = -Centuries)) + geom_bar(stat = "identity")
+ducks_years <- odi %>% group_by(Year) %>% summarise(Ducks = sum(Runs < 1))
+ggplot(ducks_years, aes(x = Year, y = Ducks, fill = -Ducks)) + geom_bar(stat = "identity")
+
+```
+-----------------------------------------------------------
+#scored more than 5000 runs.
+-----------------------------------------------------------
+
+
+
+```{r}
+players_summary_total <- odi %>% group_by(Player) %>% summarise(TotalRuns = sum(Runs))
+runs_5000 <- filter(players_summary_total, TotalRuns >= 5000)
+nrow(runs_5000)
+```
+
+-----------------------------------------------------
+#played more than 50 matches
+-----------------------------------------------------
+```{r}
+player_summarymatches <- odi %>% group_by(Player) %>% summarise(count = n())
+matches_50 <- filter(player_summarymatches,count > 50)
+nrow(matches_50)
+
+```
+-------------------------------------------
+#number of words in each player
+-------------------------------------------
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+str(odi$Player)
+odi$Player<-as.character(odi$Player)
+SplitWords<-strsplit(odi$Player," ")
+odi$wordcount<-sapply(SplitWords,length)
+head(odi,20)
+```
