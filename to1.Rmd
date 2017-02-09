@@ -1,0 +1,87 @@
+---
+title: "Text Analysis"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(dplyr)
+library(stringr)
+odi= read.csv('odi-batting-analysis.csv ')
+odi$Player = as.character(odi$Player)
+Playerword_list = strsplit(odi$Player,' ')
+Playerword_list = unlist(Playerword_list)
+
+Playerword_list = table(Playerword_list)
+#head(Playerword_list)
+Playerword_list = sort(Playerword_list,decreasing = T)
+playername_count = as.data.frame(Playerword_list)
+player_stop_word = c('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','V','W','X','Y','Z')
+playername_count = playername_count[!playername_count$Playerword_list %in% player_stop_word,]
+#head(playername_count)
+ 
+#library(wordcloud)
+top_words = head(playername_count,50)
+wordcloud(top_words$Playerword_list,top_words$Freq)
+wordcloud(top_words$Playerword_list,top_words$Freq,colors = brewer.pal(6,'Dark2'))
+wordcloud(top_words$Playerword_list,top_words$Freq,scale = c(2,0.2),colors = brewer.pal(6,'Dark2'))
+```
+```
+
+```
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+tweets = read.csv('narendramodi_tweets.csv')
+library(stringr)
+tweets$India = str_count(tweets$text,'India')
+tweets$PM = str_count(tweets$text,'PM')
+top_words = c('PM','India','people','wishes','Thank')
+for(word in top_words){
+  tweets[word] <- str_count(tweets$text,word)
+}
+tweets$date <- as.Date(tweets$created_at, '%Y-%m-%d %H:%M:%S')
+tweets$year = format(tweets$date,'%Y')
+tweets$month = format(tweets$date,'%m')
+tweets$year_month = format(tweets$date,'%Y-%m')
+summary = tweets %>% group_by(year_month) %>% summarise(count = sum(PM))
+ggplot(summary,aes(x=year_month,y=count,group = 1))+geom_line()
+data_subset = select(tweets,year_month,pm,india,people)
+head(data_subset)
+library(reshape2)
+a=melt(data_subset,id.vars=c("year_month"))
+head(a,25)
+name(a)
+```
+
+### Chart C
+
+```{r}
+b=a %>% group_by (year_month,variable) %>% summarise (count=sum(val))
+head(b)
+ggplot(b,aes(x=year_month,y=count,group=variable,color=variable))+ geom_line()
+```
+
