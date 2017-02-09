@@ -1,0 +1,60 @@
+---
+title: "Banking Analysis"
+author: "SHUBHAM P"
+date: "25 January 2017"
+output: html_document
+---
+
+```{r}
+Bank.Campaign <- read.csv("D:/Bank Campaign.csv")
+View(Bank.Campaign)
+summary(Bank.Campaign)
+nrow(Bank.Campaign)
+ncol(Bank.Campaign)
+dim(Bank.Campaign)
+str(Bank.Campaign)
+```
+
+## R Markdown
+
+
+
+```{r}
+library(Rcpp)
+library(VIM)
+library(mice)
+md.pattern(Bank.Campaign)
+colSums(Bank.Campaign != "null")
+
+```
+
+## Including Plots
+
+
+
+```{r}
+library(ggplot2)
+ggplot(Bank.Campaign,aes(x=Age.Group,fill=Bank.Campaign$Age.Group))+geom_bar()+labs(x="r",y="t")+ggtitle("maintitle=m")
+```
+```{r}
+ggplot(Bank.Campaign,aes(x=Job,fill=Bank.Campaign$Job))+geom_bar()+labs(x="r",y="t")+ggtitle("maintitle=m")
+```
+```{r}
+ggplot(Bank.Campaign,aes(x=Marital,fill=Bank.Campaign$Marital))+geom_bar()+labs(x="r",y="t")+ggtitle("maintitle=m")
+```
+```{r}
+ggplot(Bank.Campaign,aes(x=Education,fill=Bank.Campaign$Education))+geom_bar()+labs(x="r",y="t")+ggtitle("maintitle=m")
+```
+```{r}
+ggplot(Bank.Campaign,aes(x=Default,fill=Bank.Campaign$Default))+geom_bar()+labs(x="r",y="t")+ggtitle("maintitle=m")
+```
+```{r}
+ggplot(Bank.Campaign,aes(x=Balance.Group,fill=Bank.Campaign$Balance.Group))+geom_bar()+labs(x="r",y="t")+ggtitle("maintitle=m")
+```
+```{r}
+ggplot(Bank.Campaign,aes(x=Month,fill=Bank.Campaign$Month))+geom_bar()+labs(x="r",y="t")+ggtitle("maintitle=m")
+
+
+```
+
+
