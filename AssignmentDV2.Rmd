@@ -1,0 +1,145 @@
+---
+title: "Tweets"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(stringr)
+library(RColorBrewer)
+library(dplyr)
+library(wordcloud)
+library(reshape2)
+library(plotly)
+tweets <- read.csv("narendramodi_tweets.csv",header = T)
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Total Number of Tweets
+
+```{r}
+totaltweets = nrow(tweets)
+valueBox(totaltweets,icon = 'fa-pencil',color = 'red')
+```
+
+###Average number of retweets
+
+```{r}
+avgretweets = round(sum(tweets$retweets_count)/nrow(tweets))
+valueBox(avgretweets,icon = "fa-pencil",color = 'green')
+```
+
+###Average number of favorites
+
+```{r}
+avgfav <- round(sum(tweets$retweets_count)/nrow(tweets))
+valueBox(avgfav,icon = "fa-pencil",color = 'brown')
+```
+
+
+row {data-width=650}
+-----------------------------------------------------------------------
+```{r}
+
+tweets$date <- as.Date(tweets$created_at,format='%d-%m-%Y %H:%M')
+tweets$Year <- format(tweets$date,'%Y')
+tweets$month <- format(tweets$date,'%m')
+tweets$year_month <- format(tweets$date,'%Y-%m')
+tweets$Quarter<-quarters(tweets$date)
+tweets2016 <- subset(tweets,Year=='2016')
+tweets2016$text <- as.character(tweets2016$text)
+word_list <- strsplit(tweets2016$text,' ')
+words <- unlist(word_list)
+words_count <- table(words)
+words_count <-sort(words_count,decreasing = T)
+words_count <- as.data.frame(words_count)
+top_words <- head(words_count,50)
+stop_words <- stopwords()
+custom_stop_words <- c('&amp;','RT','I','My','The','will','We','This','us','will','can')
+
+words_count <- words_count[!words_count$words %in% stop_words,]
+words_count <- words_count[!words_count$words %in% custom_stop_words,]
+top_words2016 <- c("india","people","good","BJP","Our")
+
+for (word in top_words2016){
+  tweets2016[word] <- str_count(tweets2016$text,word)
+}
+tweets1 <- tweets2016 %>% group_by(Quarter)%>%summarise(India=sum(india,na.rm=T),People=sum(people,na.rm=T),good=sum(good,na.rm=T),BJP= sum(BJP,na.rm=T),Our=sum(Our,na.rm=T)) 
+tweets2 <- melt(tweets1,id.vars= "Quarter")
+names(tweets2)<- c("Quarter","Top_Words","Count")
+abc<-ggplot(tweets2,aes(Quarter,Count)) + geom_bar(fill="blue",stat ="identity") +facet_wrap(~Top_Words) + theme_dark()
+ggplotly(abc)
+
+
+```
+
+
+
+###Source
+
+
+```{r}
+a<-tweets%>%group_by(source)%>%summarise(d=n())%>%arrange(-d)
+b<-as.data.frame(a)
+
+ggplot(b,aes(x=source,y=d))+geom_bar(stat = "identity",fill='blue') +coord_flip()+ theme_dark()  + ylab("Number of Tweets")
+
+```
+
+
+
+
+
+row {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart for Count of Tweets
+```{r}
+hashtag_tweets = subset(tweets2016,select = c(5,10,18)) 
+hashtag_tweets = subset(hashtag_tweets,hashtag_tweets$hashtags_count>0)
+hashtag_words_list <- str_extract_all(hashtag_tweets$text,"#\\S+")
+hashtag_wordunlist <- unlist(hashtag_words_list)
+hashtag_words <- table(hashtag_wordunlist)
+hashtag_words <- sort(hashtag_words,decreasing = T)
+hashtag_count <- as.data.frame(hashtag_words)
+top_hashtag_words <- head(hashtag_count,5)
+top_hashtag_words <- c('#TirangaYatra','#Sandesh2Soldiers','#MannKiBaat','#YogaDay','#TransformingIndia')
+
+
+for (word in top_hashtag_words){
+hashtag_tweets[word] <- str_count(hashtag_tweets$text,word)
+}
+
+#head(select(hashtag_tweets, `#TirangaYatra`))
+
+data_subset <- subset(hashtag_tweets,select = c(3,4,5,6,7,8)) 
+data_subset$Year_Month <- format(data_subset$date,"%Y-%m")
+data_subset <- data_subset[,-1]
+a = melt(data_subset,id.vars = c("Year_Month"))
+
+#head(a,25)
+#names(a)
+b= a %>% group_by(Year_Month,variable) %>% summarise(count= sum(value))
+#head(b)
+g<- ggplot(b,aes(x=Year_Month,y=count,group=variable,color=variable)) +geom_line() + theme_dark()
+#+xlab(x=YearMonth,y=CountTweets)
+ggplotly(g)
+```
+
+### WordCloud
+```{r}
+
+hashtag_wordcloud <- head(hashtag_words,30)
+hashtag_wordcloud <- as.data.frame(hashtag_wordcloud)
+wordcloud(hashtag_wordcloud$hashtag_wordunlist,hashtag_wordcloud$Freq,scale = c(2,0.4),colors = brewer.pal(6,'Dark2'))
+
+```
+
